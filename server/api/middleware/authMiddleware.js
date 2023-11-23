@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
-const config = require("config");
+require("dotenv").config();
+
+const jwtSecret = process.env.JWT_SECRET;
 
 function authMiddleware(req, res, next) {
   // Get token from header
@@ -12,7 +14,7 @@ function authMiddleware(req, res, next) {
 
   // Verify token
   try {
-    const decoded = jwt.verify(token, config.get("jwtSecret"));
+    const decoded = jwt.verify(token, jwtSecret);
 
     // Add user to payload
     req.user = decoded.user;

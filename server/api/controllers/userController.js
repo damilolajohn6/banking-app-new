@@ -1,7 +1,10 @@
+require("dotenv").config();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 const User = require("../models/userModel");
+
+// const jwtSecret = process.env.JWT_SECRET;
 
 async function registerUser(req, res) {
   const { username, password, name, address, dateOfBirth } = req.body;
@@ -11,7 +14,7 @@ async function registerUser(req, res) {
     let user = await User.findOne({ username });
 
     if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
+      return res.status(400).json({ msg: "User already exists" });
     }
 
     // Create new user with KYC information and initial balance
@@ -39,25 +42,15 @@ async function registerUser(req, res) {
       },
     };
 
-    jwt.sign(payload, config.get('jwtSecret'), { expiresIn: 3600 }, (err, token) => {
-      if (err) throw err;
-      res.json({ token });
-    });
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).send('Server Error');
-  }
-}
-
-async function getUserBalance(req, res) {
-  try {
-    const user = await User.findById(req.user.id).select("balance");
-
-    if (!user) {
-      return res.status(404).json({ msg: "User not found" });
-    }
-
-    res.json({ balance: user.balance });
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: 3600 },
+      (err, token) => {
+        if (err) throw err;
+        res.json({ token });
+      }
+    );
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Server Error");
@@ -91,13 +84,29 @@ async function loginUser(req, res) {
 
     jwt.sign(
       payload,
-      config.get("jwtSecret"),
+      process.env.JWT_SECRET,
       { expiresIn: 3600 },
       (err, token) => {
         if (err) throw err;
         res.json({ token });
       }
     );
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Server Error");
+  }
+}
+
+
+async function getUserBalance(req, res) {
+  try {
+    const user = await User.findById(req.user.id).select("balance");
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    res.json({ balance: user.balance });
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Server Error");
